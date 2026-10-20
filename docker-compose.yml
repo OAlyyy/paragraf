@@ -24,6 +24,13 @@ services:
         required: false
     ports:
       - "8000:8000"
+    # Without a healthcheck, `docker compose up --wait` treats "container started"
+    # as ready, before migrations and uvicorn are up. The slim image has no curl.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
     depends_on:
       db:
         condition: service_healthy
